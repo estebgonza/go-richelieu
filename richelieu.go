@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v2"
 )
 
 const (
@@ -29,7 +29,7 @@ func main() {
 	app.Usage = appDescription
 	app.Version = appVersion
 
-	app.Commands = []cli.Command{
+	app.Commands = []*cli.Command{
 		{
 			Name:   "generate",
 			Usage:  "Execute the generation plan",
@@ -47,4 +47,5 @@ func generate(c *cli.Context) error {
 	/*
 	 Run plan in generator and returns
 	*/
+	return nil
 }
