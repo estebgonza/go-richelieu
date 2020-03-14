@@ -5,12 +5,22 @@ import (
 	"fmt"
 )
 
+type Rows struct {
+	Rows []Row
+}
+
+type Row struct {
+	Columns []Column
+}
+
+type Column struct {
+	Type        string `json:"type"`
+	Cardinality int    `json:"cardinality"`
+}
+
 type Plan struct {
-	Rows    int `json:"rows"`
-	Columns []struct {
-		Type        string `json:"type"`
-		Cardinality int    `json:"cardinality"`
-	} `json:"columns"`
+	Rows    int      `json:"rows"`
+	Columns []Column `json:"columns"`
 }
 
 func Execute(p *Plan) error {
@@ -18,13 +28,43 @@ func Execute(p *Plan) error {
 		return err
 	}
 	fmt.Println(p, p.Rows)
+	var row Row
+	var rows Rows
+	fmt.Println(rows)
 	for i := 0; i < p.Rows; i++ {
-		for _, column := range p.Columns {
-			fmt.Println(column)
-			col := DefaultColumn{}
-			col.GenerateValue(col)
+		if i%1024 == 0 && i != 0 {
+			flushRows(rows)
 		}
+		for _, column := range p.Columns {
+			row = Row{}
+			fmt.Println(column)
+			col := setType(column.Type)
+			newCol, err := col.GenerateValue(col)
+			if err != nil {
+				return err
+			}
+			row.append(newCol)
+		}
+		rows.appendRow(row)
 	}
+	flushRows(rows)
+	return nil
+}
+
+func (r Row) appendCol(col Column)
+
+func (r Rows) appendRow(row Row) {
+	r.append(row)
+}
+
+func (r Rows) outputRows() {
+	fmt.Println(r)
+}
+
+func flushRows(r Rows) error {
+	r.outputRows()
+	r.Rows = r.Rows[:0]
+	r.outputRows()
 	return nil
 }
 
@@ -48,4 +88,18 @@ func validate(p *Plan) error {
 		}
 	}
 	return nil
+}
+
+func setType(t string) InterfaceColumn {
+
+	switch t {
+	case "STRING":
+		return StringColumn{}
+	case "INT":
+		return IntColumn{}
+	case "DATE":
+		return DateColumn{}
+	default:
+		return DefaultColumn{}
+	}
 }

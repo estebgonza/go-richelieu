@@ -2,26 +2,41 @@ package generator
 
 import (
 	"fmt"
+	"github.com/brianvoe/gofakeit/v4"
+	"time"
 )
 
 /** TODO: Abstract class column
 In default_column.go for now
 */
 
-type Str struct {
+type StringColumn struct {
 	DefaultColumn
 }
 
-// type Int struct {
-// 	Column
-// }
-
-type InterfaceColumn interface {
-	GenerateValue(InterfaceColumn) error
-	// NextValue()
+type IntColumn struct {
+	DefaultColumn
 }
 
-func (s Str) GenerateValue(i InterfaceColumn) error {
-	fmt.Println("String")
-	return nil
+type DateColumn struct {
+	DefaultColumn
+}
+
+type InterfaceColumn interface {
+	GenerateValue(InterfaceColumn) (string, error)
+}
+
+func (s StringColumn) GenerateValue(i InterfaceColumn) (string, error) {
+	fmt.Println(gofakeit.Word())
+	return gofakeit.Word(), nil
+}
+
+func (s IntColumn) GenerateValue(i InterfaceColumn) (uint8, error) {
+	fmt.Println(gofakeit.Uint8())
+	return gofakeit.Uint8(), nil
+}
+
+func (s DateColumn) GenerateValue(i InterfaceColumn) (time.Time, error) {
+	fmt.Println(gofakeit.Date())
+	return gofakeit.Date(), nil
 }

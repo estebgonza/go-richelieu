@@ -1,17 +1,17 @@
 {
-	"rows": 20,
+	"rows": 10,
 	"columns": [
 		{
-			"type": "STRING",
-			"cardinality": 5
+			"type": "DATE",
+			"cardinality": 3
 		},
 		{
 			"type": "STRING",
-			"cardinality": 20
+			"cardinality": 10
 		},
 		{
-			"type": "STRING",
-			"cardinality": 20
+			"type": "INT",
+			"cardinality": 10
 		}
 	]
 }

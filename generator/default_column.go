@@ -7,7 +7,7 @@ import (
 type DefaultColumn struct {
 }
 
-func (d DefaultColumn) GenerateValue(i InterfaceColumn) error {
+func (d DefaultColumn) GenerateValue(i InterfaceColumn) (string, error) {
 	fmt.Println("DEFAULT STRING")
-	return nil
+	return "DEFAULT STRING", nil
 }
