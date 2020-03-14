@@ -53,7 +53,7 @@ func generate(c *cli.Context) error {
 	var planFile *os.File
 	var byteValue []byte
 	var p generator.Plan
-	planFile, err := os.Open(planFile)
+	planFile, err := os.Open(defaultPlanFile)
 	if err != nil {
 		return errors.New("No plan.json found.")
 	}
