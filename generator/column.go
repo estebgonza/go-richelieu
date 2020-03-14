@@ -4,13 +4,12 @@ import (
 	"fmt"
 )
 
-/** TODO: Abstract class column */
-
-type Column struct {
-}
+/** TODO: Abstract class column
+In default_column.go for now
+*/
 
 type Str struct {
-	Column
+	DefaultColumn
 }
 
 // type Int struct {

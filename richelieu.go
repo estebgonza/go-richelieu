@@ -44,7 +44,9 @@ func main() {
 }
 
 func generate(c *cli.Context) error {
-	str := &generator.Str{generator.Column{}}
+	str := &generator.Str{generator.DefaultColumn{}}
 	str.GenerateValue(str)
+	rien := &generator.DefaultColumn{}
+	rien.GenerateValue(rien)
 	return nil
 }
