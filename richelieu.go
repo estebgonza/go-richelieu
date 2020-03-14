@@ -1,10 +1,14 @@
 package main
 
 import (
+	"encoding/json"
+	"errors"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 
+	"github.com/estebgonza/go-richelieu/generator"
 	"github.com/urfave/cli/v2"
 )
 
@@ -44,8 +48,14 @@ func main() {
 }
 
 func generate(c *cli.Context) error {
-	/*
-	 Run plan in generator and returns
-	*/
-	return nil
+	var planFile *os.File
+	var byteValue []byte
+	var p generator.Plan
+	planFile, err := os.Open("plan.json")
+	if err != nil {
+		return errors.New("No plan.json found.")
+	}
+	byteValue, _ = ioutil.ReadAll(planFile)
+	json.Unmarshal(byteValue, &p)
+	return generator.Execute(&p)
 }
