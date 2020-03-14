@@ -2,10 +2,10 @@ package main
 
 import (
 	"fmt"
+	"github.com/estebgonza/go-richelieu/generator"
+	"github.com/urfave/cli/v2"
 	"log"
 	"os"
-
-	"github.com/urfave/cli/v2"
 )
 
 const (
@@ -44,8 +44,7 @@ func main() {
 }
 
 func generate(c *cli.Context) error {
-	/*
-	 Run plan in generator and returns
-	*/
+	str := &generator.Str{generator.Column{}}
+	str.GenerateValue(str)
 	return nil
 }
