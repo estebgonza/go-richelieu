@@ -5,19 +5,50 @@ import (
 	"fmt"
 )
 
+type Rows struct {
+	Rows []Row
+}
+
+type Row struct {
+	Columns []Column
+}
+
+type Column struct {
+	Type        string `json:"type"`
+	Cardinality int    `json:"cardinality"`
+}
+
 type Plan struct {
-	Rows    int `json:"rows"`
-	Columns []struct {
-		Type        string `json:"type"`
-		Cardinality int    `json:"cardinality"`
-	} `json:"columns"`
+	Rows    int      `json:"rows"`
+	Columns []Column `json:"columns"`
 }
 
 func Execute(p *Plan) error {
 	if err := validate(p); err != nil {
 		return err
 	}
-	// TODO: Execute the plan generation.
+	fmt.Println(p, p.Rows)
+	for i := 0; i < p.Rows; i++ {
+		for _, column := range p.Columns {
+			col := setType(column.Type)
+			newCol, err := col.GenerateValue(col)
+			fmt.Println(newCol)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func (r Rows) outputRows() {
+	fmt.Println(r)
+}
+
+func flushRows(r Rows) error {
+	r.outputRows()
+	r.Rows = r.Rows[:0]
+	r.outputRows()
 	return nil
 }
 
@@ -41,4 +72,18 @@ func validate(p *Plan) error {
 		}
 	}
 	return nil
+}
+
+func setType(t string) InterfaceColumn {
+
+	switch t {
+	case "STRING":
+		return StringColumn{}
+	case "INT":
+		return IntColumn{}
+	case "DATE":
+		return DateColumn{}
+	default:
+		return DefaultColumn{}
+	}
 }
