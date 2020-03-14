@@ -28,34 +28,35 @@ func Execute(p *Plan) error {
 		return err
 	}
 	fmt.Println(p, p.Rows)
-	var row Row
-	var rows Rows
-	fmt.Println(rows)
+	// var row Row
+	// var rows Rows
+	// fmt.Println(rows)
 	for i := 0; i < p.Rows; i++ {
-		if i%1024 == 0 && i != 0 {
-			flushRows(rows)
-		}
+		// if i%1024 == 0 && i != 0 {
+		// 	flushRows(rows)
+		// }
 		for _, column := range p.Columns {
-			row = Row{}
-			fmt.Println(column)
+			// row = Row{}
+			// fmt.Println(row, column)
 			col := setType(column.Type)
 			newCol, err := col.GenerateValue(col)
+			fmt.Println(newCol)
 			if err != nil {
 				return err
 			}
-			row.append(newCol)
+			//row.append(newCol)
 		}
-		rows.appendRow(row)
+		// rows.appendRow(row)
 	}
-	flushRows(rows)
+	// flushRows(rows)
 	return nil
 }
 
-func (r Row) appendCol(col Column)
+// func (r Row) appendCol(col Column)
 
-func (r Rows) appendRow(row Row) {
-	r.append(row)
-}
+// func (r Rows) appendRow(row Row) {
+// 	r.append(row)
+// }
 
 func (r Rows) outputRows() {
 	fmt.Println(r)

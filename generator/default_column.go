@@ -5,9 +5,11 @@ import (
 )
 
 type DefaultColumn struct {
+	value string
 }
 
-func (d DefaultColumn) GenerateValue(i InterfaceColumn) (string, error) {
+func (d DefaultColumn) GenerateValue(i InterfaceColumn) (InterfaceColumn, error) {
 	fmt.Println("DEFAULT STRING")
-	return "DEFAULT STRING", nil
+	d.value = "DEFAULT STRING"
+	return d, nil
 }
