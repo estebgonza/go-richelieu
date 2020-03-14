@@ -13,9 +13,10 @@ import (
 )
 
 const (
-	appName        string = "Richelieu"
-	appDescription string = "Data generator that respects cardinality and schema structures#."
-	appVersion     string = "0.1"
+	appName         string = "Richelieu"
+	appDescription  string = "Data generator that respects cardinality and schema structures#."
+	appVersion      string = "0.1"
+	defaultPlanFile string = "plan.json"
 )
 
 const helpTemplate = `
@@ -52,7 +53,7 @@ func generate(c *cli.Context) error {
 	var planFile *os.File
 	var byteValue []byte
 	var p generator.Plan
-	planFile, err := os.Open("plan.json")
+	planFile, err := os.Open(defaultPlanFile)
 	if err != nil {
 		return errors.New("No plan.json found.")
 	}
