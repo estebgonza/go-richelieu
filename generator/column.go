@@ -1,48 +1,31 @@
 package generator
 
 import (
-	"fmt"
+	"strconv"
+
 	"github.com/brianvoe/gofakeit/v4"
-	"time"
 )
 
 /** TODO: Abstract class column
 In default_column.go for now
 */
 
-type StringColumn struct {
-	value string
-	DefaultColumn
-}
-
-type IntColumn struct {
-	value uint8
-	DefaultColumn
-}
-
-type DateColumn struct {
-	value time.Time
-	DefaultColumn
-}
+type StringColumn struct{}
+type IntColumn struct{}
+type DateColumn struct{}
 
 type InterfaceColumn interface {
-	GenerateValue(InterfaceColumn) (InterfaceColumn, error)
+	GenerateValue(InterfaceColumn) (string, error)
 }
 
-func (s StringColumn) GenerateValue(i InterfaceColumn) (InterfaceColumn, error) {
-	fmt.Println(gofakeit.Word())
-	s.value = gofakeit.Word()
-	return s, nil
+func (s StringColumn) GenerateValue(i InterfaceColumn) (string, error) {
+	return gofakeit.Word(), nil
 }
 
-func (s IntColumn) GenerateValue(i InterfaceColumn) (InterfaceColumn, error) {
-	fmt.Println(gofakeit.Uint8())
-	s.value = gofakeit.Uint8()
-	return s, nil
+func (s IntColumn) GenerateValue(i InterfaceColumn) (string, error) {
+	return strconv.Itoa(int(gofakeit.Uint8())), nil
 }
 
-func (s DateColumn) GenerateValue(i InterfaceColumn) (InterfaceColumn, error) {
-	fmt.Println(gofakeit.Date())
-	s.value = gofakeit.Date()
-	return s, nil
+func (s DateColumn) GenerateValue(i InterfaceColumn) (string, error) {
+	return gofakeit.Date().String(), nil
 }

@@ -77,13 +77,13 @@ func validate(p *Plan) error {
 func setType(t string) InterfaceColumn {
 
 	switch t {
-	case "STRING":
-		return StringColumn{}
 	case "INT":
 		return IntColumn{}
 	case "DATE":
 		return DateColumn{}
+	case "STRING":
+		return StringColumn{}
 	default:
-		return DefaultColumn{}
+		return StringColumn{}
 	}
 }
