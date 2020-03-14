@@ -29,9 +29,7 @@ func Execute(p *Plan) error {
 	}
 	fmt.Println(p, p.Rows)
 	for i := 0; i < p.Rows; i++ {
-
 		for _, column := range p.Columns {
-)
 			col := setType(column.Type)
 			newCol, err := col.GenerateValue(col)
 			fmt.Println(newCol)
