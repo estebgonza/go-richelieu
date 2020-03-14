@@ -27,6 +27,7 @@ Usage: {{.HelpName}} [command]
 `
 
 func main() {
+	log.SetFlags(0)
 	cli.AppHelpTemplate = fmt.Sprintf(helpTemplate)
 	app := cli.NewApp()
 	app.Name = appName

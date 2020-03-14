@@ -1,0 +1,17 @@
+{
+	"rows": 20,
+	"columns": [
+		{
+			"type": "STRING",
+			"cardinality": 5
+		},
+		{
+			"type": "STRING",
+			"cardinality": -1
+		},
+		{
+			"type": "STRING",
+			"cardinality": 20
+		}
+	]
+}
