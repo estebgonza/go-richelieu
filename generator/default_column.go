@@ -8,6 +8,6 @@ type DefaultColumn struct {
 }
 
 func (d DefaultColumn) GenerateValue(i InterfaceColumn) error {
-	fmt.Println("STRING")
+	fmt.Println("DEFAULT STRING")
 	return nil
 }

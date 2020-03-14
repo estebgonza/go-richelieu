@@ -17,7 +17,14 @@ func Execute(p *Plan) error {
 	if err := validate(p); err != nil {
 		return err
 	}
-	// TODO: Execute the plan generation.
+	fmt.Println(p, p.Rows)
+	for i := 0; i < p.Rows; i++ {
+		for _, column := range p.Columns {
+			fmt.Println(column)
+			col := DefaultColumn{}
+			col.GenerateValue(col)
+		}
+	}
 	return nil
 }
 
