@@ -39,8 +39,9 @@ func generate(p *Plan) {
 func initializeColumns(p *Plan) {
 	for _, planColumn := range p.PlanColumns {
 		value := createValueGenerator(planColumn.Type)
-		rot := p.Rows / planColumn.Cardinality
-		column := Column{valueGenerator: value, rotation: rot, count: rot}
+		rot_base := p.Rows / planColumn.Cardinality
+		rot_mod := p.Rows % planColumn.Cardinality
+		column := Column{valueGenerator: value, rotation_base: rot_base, rotation_mod: rot_mod, count: rot_base}
 		p.Columns = append(p.Columns, &column)
 	}
 }
