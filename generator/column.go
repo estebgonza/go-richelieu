@@ -14,27 +14,23 @@ type Column struct {
 	count    int
 }
 
-func (c *Column) countOne() {
-	c.count = 1
+func (c *Column) resetOne() {
+	c.count = c.rotation
 }
 
-func (c *Column) countAdd() {
-	c.count += 1
+func (c *Column) subOne() {
+	c.count--
 }
 
 func (c *Column) nextValue() string {
 	/** The cardinality magic should be here. */
-	// fmt.Println(c.count)
-	if c.count == 1 {
-		// fmt.Println(c.rotation)
-		// fmt.Println(c.count)
+	if c.count == c.rotation {
 		newValue, _ := c.valueGenerator.GenerateValue()
 		c.value = newValue
 	}
-	c.count = c.count + 1
-	// fmt.Println(c.count)
-	// if c.count > c.rotation {
-	// 	c.countOne()
-	// }
+	c.count = c.count - 1
+	if c.count <= 0 {
+		c.resetOne()
+	}
 	return c.value
 }

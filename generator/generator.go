@@ -13,7 +13,7 @@ type PlanColumn struct {
 type Plan struct {
 	Rows        int          `json:"rows"`
 	PlanColumns []PlanColumn `json:"columns"`
-	Columns     []Column     `json:"-"`
+	Columns     []*Column    `json:"-"`
 }
 
 func Execute(p *Plan) error {
@@ -31,9 +31,7 @@ func Execute(p *Plan) error {
 func generate(p *Plan) {
 	for i := 0; i < p.Rows; i++ {
 		for _, column := range p.Columns {
-			column.nextValue()
-			fmt.Println(column.value)
-			// fmt.Println(column.count)
+			fmt.Println(column.nextValue())
 		}
 	}
 }
@@ -41,8 +39,9 @@ func generate(p *Plan) {
 func initializeColumns(p *Plan) {
 	for _, planColumn := range p.PlanColumns {
 		value := createValueGenerator(planColumn.Type)
-		column := Column{valueGenerator: value, rotation: p.Rows / planColumn.Cardinality, count: 1}
-		p.Columns = append(p.Columns, column)
+		rot := p.Rows / planColumn.Cardinality
+		column := Column{valueGenerator: value, rotation: rot, count: rot}
+		p.Columns = append(p.Columns, &column)
 	}
 }
 
