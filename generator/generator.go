@@ -5,51 +5,43 @@ import (
 	"fmt"
 )
 
-type Rows struct {
-	Rows []Row
-}
-
-type Row struct {
-	Columns []Column
-}
-
-type Column struct {
+type PlanColumn struct {
 	Type        string `json:"type"`
 	Cardinality int    `json:"cardinality"`
 }
 
 type Plan struct {
-	Rows    int      `json:"rows"`
-	Columns []Column `json:"columns"`
+	Rows        int          `json:"rows"`
+	PlanColumns []PlanColumn `json:"columns"`
+	Columns     []Column     `json:"-"`
 }
 
 func Execute(p *Plan) error {
 	if err := validate(p); err != nil {
 		return err
 	}
-	fmt.Println(p, p.Rows)
+	// Initialize Column from PlanColumns
+	initializeColumns(p)
+	// Generate rows
+	generate(p)
+
+	return nil
+}
+
+func generate(p *Plan) {
 	for i := 0; i < p.Rows; i++ {
 		for _, column := range p.Columns {
-			col := setType(column.Type)
-			newCol, err := col.GenerateValue(col)
-			fmt.Println(newCol)
-			if err != nil {
-				return err
-			}
+			fmt.Println(column.nextValue())
 		}
 	}
-	return nil
 }
 
-func (r Rows) outputRows() {
-	fmt.Println(r)
-}
-
-func flushRows(r Rows) error {
-	r.outputRows()
-	r.Rows = r.Rows[:0]
-	r.outputRows()
-	return nil
+func initializeColumns(p *Plan) {
+	for _, planColumn := range p.PlanColumns {
+		value := createValueGenerator(planColumn.Type)
+		column := Column{valueGenerator: value}
+		p.Columns = append(p.Columns, column)
+	}
 }
 
 // Validate Plan inputs.
@@ -60,8 +52,8 @@ func validate(p *Plan) error {
 		return errors.New("Expected rows can't be negative.")
 	}
 	// Checks cardinalities for each columns
-	for index, column := range p.Columns {
-		cardinality := column.Cardinality
+	for index, planColumn := range p.PlanColumns {
+		cardinality := planColumn.Cardinality
 		if cardinality < 1 {
 			m := fmt.Sprintf("Error. Column %d: cardinality can't be lower than 1.", index)
 			return errors.New(m)
@@ -74,16 +66,15 @@ func validate(p *Plan) error {
 	return nil
 }
 
-func setType(t string) InterfaceColumn {
-
+func createValueGenerator(t string) Value {
 	switch t {
 	case "INT":
-		return IntColumn{}
+		return IntValue{}
 	case "DATE":
-		return DateColumn{}
+		return DateValue{}
 	case "STRING":
-		return StringColumn{}
+		return StringValue{}
 	default:
-		return StringColumn{}
+		return StringValue{}
 	}
 }

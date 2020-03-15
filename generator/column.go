@@ -1,31 +1,15 @@
 package generator
 
-import (
-	"strconv"
-
-	"github.com/brianvoe/gofakeit/v4"
-)
-
-/** TODO: Abstract class column
-In default_column.go for now
-*/
-
-type StringColumn struct{}
-type IntColumn struct{}
-type DateColumn struct{}
-
-type InterfaceColumn interface {
-	GenerateValue(InterfaceColumn) (string, error)
+type Column struct {
+	// Last generated value
+	value string
+	// Value generator
+	valueGenerator Value
 }
 
-func (s StringColumn) GenerateValue(i InterfaceColumn) (string, error) {
-	return gofakeit.Word(), nil
-}
-
-func (s IntColumn) GenerateValue(i InterfaceColumn) (string, error) {
-	return strconv.Itoa(int(gofakeit.Uint8())), nil
-}
-
-func (s DateColumn) GenerateValue(i InterfaceColumn) (string, error) {
-	return gofakeit.Date().String(), nil
+func (c Column) nextValue() string {
+	/** The cardinality magic should be here. */
+	newValue, _ := c.valueGenerator.GenerateValue()
+	c.value = newValue
+	return c.value
 }
