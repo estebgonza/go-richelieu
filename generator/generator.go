@@ -13,7 +13,7 @@ type PlanColumn struct {
 type Plan struct {
 	Rows        int          `json:"rows"`
 	PlanColumns []PlanColumn `json:"columns"`
-	Columns     []Column     `json:"-"`
+	Columns     []*Column    `json:"-"`
 }
 
 func Execute(p *Plan) error {
@@ -42,7 +42,7 @@ func initializeColumns(p *Plan) {
 	for _, planColumn := range p.PlanColumns {
 		value := createValueGenerator(planColumn.Type)
 		column := Column{valueGenerator: value, rotation: p.Rows / planColumn.Cardinality, count: 1}
-		p.Columns = append(p.Columns, column)
+		p.Columns = append(p.Columns, &column)
 	}
 }
 
