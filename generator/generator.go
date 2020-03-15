@@ -1,8 +1,10 @@
 package generator
 
 import (
+	"encoding/csv"
 	"errors"
 	"fmt"
+	"os"
 )
 
 type PlanColumn struct {
@@ -28,12 +30,22 @@ func Execute(p *Plan) error {
 	return nil
 }
 
-func generate(p *Plan) {
-	for i := 0; i < p.Rows; i++ {
-		for _, column := range p.Columns {
-			fmt.Println(column.nextValue())
-		}
+func generate(p *Plan) error {
+	csvFile, err := os.Create("output.csv")
+	if err != nil {
+		return err
 	}
+	csvwriter := csv.NewWriter(csvFile)
+	for i := 0; i < p.Rows; i++ {
+		var row []string
+		// Build the row
+		for _, column := range p.Columns {
+			row = append(row, column.nextValue())
+		}
+		csvwriter.Write(row)
+	}
+	csvwriter.Flush()
+	return nil
 }
 
 func initializeColumns(p *Plan) {
