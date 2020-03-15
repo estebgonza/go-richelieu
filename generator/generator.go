@@ -31,7 +31,9 @@ func Execute(p *Plan) error {
 func generate(p *Plan) {
 	for i := 0; i < p.Rows; i++ {
 		for _, column := range p.Columns {
-			fmt.Println(column.nextValue())
+			column.nextValue()
+			fmt.Println(column.value)
+			// fmt.Println(column.count)
 		}
 	}
 }
@@ -39,7 +41,7 @@ func generate(p *Plan) {
 func initializeColumns(p *Plan) {
 	for _, planColumn := range p.PlanColumns {
 		value := createValueGenerator(planColumn.Type)
-		column := Column{valueGenerator: value}
+		column := Column{valueGenerator: value, rotation: p.Rows / planColumn.Cardinality, count: 1}
 		p.Columns = append(p.Columns, column)
 	}
 }

@@ -7,7 +7,9 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"time"
 
+	"github.com/brianvoe/gofakeit/v4"
 	"github.com/estebgonza/go-richelieu/generator"
 	"github.com/urfave/cli/v2"
 )
@@ -53,6 +55,7 @@ func generate(c *cli.Context) error {
 	var planFile *os.File
 	var byteValue []byte
 	var p generator.Plan
+	gofakeit.Seed(time.Now().UnixNano())
 	planFile, err := os.Open(defaultPlanFile)
 	if err != nil {
 		return errors.New("No plan.json found.")
