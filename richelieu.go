@@ -62,5 +62,7 @@ func generate(c *cli.Context) error {
 	}
 	byteValue, _ = ioutil.ReadAll(planFile)
 	json.Unmarshal(byteValue, &p)
-	return generator.Execute(&p)
+	generator.Execute(&p)
+	fmt.Printf("Done. %d rows just generated.\n", p.Rows)
+	return nil
 }
