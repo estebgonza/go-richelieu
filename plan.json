@@ -1,5 +1,5 @@
 {
-	"rows": 5,
+	"rows": 8,
 	"columns": [
 		{
 			"type": "DATE",
@@ -7,7 +7,7 @@
 		},
 		{
 			"type": "STRING",
-			"cardinality": 5
+			"cardinality": 3
 		},
 		{
 			"type": "INT",

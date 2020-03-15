@@ -1,9 +1,5 @@
 package generator
 
-// import (
-// 	"fmt"
-// )
-
 type Column struct {
 	// Last generated value
 	value string
