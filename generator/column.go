@@ -6,27 +6,22 @@ type Column struct {
 	// Value generator
 	valueGenerator Value
 	// Number of value rotation
-	rotation int
-	count    int
-}
-
-func (c *Column) resetOne() {
-	c.count = c.rotation
-}
-
-func (c *Column) subOne() {
-	c.count--
+	rotation_base int
+	rotation_mod  int
+	count         int
 }
 
 func (c *Column) nextValue() string {
 	/** The cardinality magic should be here. */
-	if c.count == c.rotation {
+	if c.count == c.rotation_base {
 		newValue, _ := c.valueGenerator.GenerateValue()
 		c.value = newValue
+	} else if c.count == 0 && c.rotation_mod > 0 {
+		c.rotation_mod--
 	}
-	c.count = c.count - 1
-	if c.count <= 0 {
-		c.resetOne()
+	c.count--
+	if c.count < 0 || (c.count == 0 && c.rotation_mod == 0) {
+		c.count = c.rotation_base
 	}
 	return c.value
 }
