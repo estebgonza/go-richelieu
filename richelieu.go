@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -45,15 +46,9 @@ func main() {
 			Action: generate,
 		},
 		{
-<<<<<<< HEAD
 			Name:   "create",
 			Usage:  "Create a generation plan",
 			Action: create,
-=======
-			Name:   "serve",
-			Usage:  "Execute the generation plan",
-			Action: serve,
->>>>>>> 47055457e1e99e1e1fe83bf5f9f0f432fac5ae80
 		},
 	}
 
@@ -61,11 +56,6 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-}
-
-func serve(c *cli.Context) error {
-	err := errors.New("Not implemented")
-	return err
 }
 
 func generate(c *cli.Context) error {
@@ -92,10 +82,22 @@ func create(c *cli.Context) error {
 		return errors.New("Please specify columns type to init a generation plan.")
 	}
 	cols := strings.Split(c.Args().Get(0), ",")
-	for _, t := range cols {
+	var columns []generator.PlanColumn
+	for index, t := range cols {
 		if err := generator.ChecksSupportedType(t); err != nil {
 			return err
 		}
+		var pc generator.PlanColumn
+		pc.Name = strings.ToLower(strconv.Itoa(index) + "_" + t)
+		pc.Distinct = 5
+		pc.Type = t
+		columns = append(columns, pc)
 	}
+
+	var plan generator.Plan
+	plan.Rows = 10000
+	plan.PlanColumns = columns
+	b, _ := json.Marshal(plan)
+	ioutil.WriteFile(defaultPlanFile, b, 0644)
 	return nil
 }
