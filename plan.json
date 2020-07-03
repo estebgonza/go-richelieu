@@ -1,5 +1,5 @@
 {
-	"rows": 100000,
+	"rows": 100000000,
 	"columns": [
 		{
 			"type": "DATE",
@@ -7,11 +7,11 @@
 		},
 		{
 			"type": "STRING",
-			"cardinality": 10000
+			"cardinality": 1000000
 		},
 		{
-			"type": "INT",
-			"cardinality": 1000000
+			"type": "IANT",
+			"cardinality": 100000000
 		}
 	]
 }

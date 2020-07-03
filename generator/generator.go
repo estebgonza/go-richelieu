@@ -18,12 +18,20 @@ type Plan struct {
 	Columns     []*Column    `json:"-"`
 }
 
+const (
+	INT_TYPE    = "INT"
+	DATE_TYPE   = "DATE"
+	STRING_TYPE = "STRING"
+)
+
 func Execute(p *Plan) error {
 	if err := validate(p); err != nil {
 		return err
 	}
 	// Initialize Column from PlanColumns
-	initializeColumns(p)
+	if err := initializeColumns(p); err != nil {
+		return err
+	}
 	// Generate rows
 	generate(p)
 
@@ -48,14 +56,18 @@ func generate(p *Plan) error {
 	return nil
 }
 
-func initializeColumns(p *Plan) {
+func initializeColumns(p *Plan) error {
 	for _, planColumn := range p.PlanColumns {
-		value := createValueGenerator(planColumn.Type)
+		value, err := createValueGenerator(planColumn.Type)
+		if err != nil {
+			return err
+		}
 		rot_base := p.Rows / planColumn.Cardinality
 		rot_mod := p.Rows % planColumn.Cardinality
 		column := Column{valueGenerator: value, rotation_base: rot_base, rotation_mod: rot_mod, count: rot_base}
 		p.Columns = append(p.Columns, &column)
 	}
+	return nil
 }
 
 // Validate Plan inputs.
@@ -80,15 +92,20 @@ func validate(p *Plan) error {
 	return nil
 }
 
-func createValueGenerator(t string) Value {
+func ChecksSupportedType(t string) error {
+	_, err := createValueGenerator(t)
+	return err
+}
+
+func createValueGenerator(t string) (val Value, err error) {
 	switch t {
-	case "INT":
-		return IntValue{}
-	case "DATE":
-		return DateValue{}
-	case "STRING":
-		return StringValue{}
+	case INT_TYPE:
+		return IntValue{}, nil
+	case DATE_TYPE:
+		return DateValue{}, nil
+	case STRING_TYPE:
+		return StringValue{}, nil
 	default:
-		return StringValue{}
+		return nil, errors.New("Unsupported type " + t)
 	}
 }

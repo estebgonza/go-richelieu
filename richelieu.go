@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/brianvoe/gofakeit/v4"
@@ -43,6 +44,11 @@ func main() {
 			Usage:  "Execute the generation plan",
 			Action: generate,
 		},
+		{
+			Name:   "create",
+			Usage:  "Create a generation plan",
+			Action: create,
+		},
 	}
 
 	err := app.Run(os.Args)
@@ -67,5 +73,18 @@ func generate(c *cli.Context) error {
 		return errExec
 	}
 	fmt.Printf("Done. %d rows just generated.\n", p.Rows)
+	return nil
+}
+
+func create(c *cli.Context) error {
+	if c.Args().Len() == 0 {
+		return errors.New("Please specify columns type to init a generation plan.")
+	}
+	cols := strings.Split(c.Args().Get(0), ",")
+	for _, t := range cols {
+		if err := generator.ChecksSupportedType(t); err != nil {
+			return err
+		}
+	}
 	return nil
 }
