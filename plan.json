@@ -3,15 +3,28 @@
 	"columns": [
 		{
 			"type": "DATE",
-			"cardinality": 30000
+			"name": "date",
+			"distinct": 30000
 		},
 		{
 			"type": "STRING",
-			"cardinality": 10000
+			"name": "first_name",
+			"distinct": 10000
 		},
 		{
 			"type": "INT",
-			"cardinality": 1000000
+			"name": "country",
+			"distinct": 500
+		},
+		{
+			"type": "INT",
+			"name": "city",
+			"distinct": 1
+		},
+		{
+			"type": "INT",
+			"name": "continent",
+			"distinct": 5
 		}
 	]
 }

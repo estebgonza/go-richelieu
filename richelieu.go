@@ -43,12 +43,22 @@ func main() {
 			Usage:  "Execute the generation plan",
 			Action: generate,
 		},
+		{
+			Name:   "serve",
+			Usage:  "Execute the generation plan",
+			Action: serve,
+		},
 	}
 
 	err := app.Run(os.Args)
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+func serve(c *cli.Context) error {
+	err := errors.New("Not implemented")
+	return err
 }
 
 func generate(c *cli.Context) error {

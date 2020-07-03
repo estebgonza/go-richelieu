@@ -1,27 +1,30 @@
 package generator
 
 type Column struct {
+	colName string
 	// Last generated value
 	value string
 	// Value generator
 	valueGenerator Value
 	// Number of value rotation
-	rotation_base int
-	rotation_mod  int
-	count         int
+	rotationBase int
+	rotationMod  int
+	count        int
+	totCount     uint64
 }
 
 func (c *Column) nextValue() string {
 	/** The cardinality magic should be here. */
-	if c.count == c.rotation_base {
-		newValue, _ := c.valueGenerator.GenerateValue()
+	if c.count == c.rotationBase {
+		newValue, _ := c.valueGenerator.GenerateValue(c.colName, c.totCount)
 		c.value = newValue
-	} else if c.count == 0 && c.rotation_mod > 0 {
-		c.rotation_mod--
+	} else if c.count == 0 && c.rotationMod > 0 {
+		c.rotationMod--
 	}
 	c.count--
-	if c.count < 0 || (c.count == 0 && c.rotation_mod == 0) {
-		c.count = c.rotation_base
+	if c.count < 0 || (c.count == 0 && c.rotationMod == 0) {
+		c.count = c.rotationBase
 	}
+	c.totCount++
 	return c.value
 }
