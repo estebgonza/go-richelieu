@@ -8,8 +8,9 @@ import (
 )
 
 type PlanColumn struct {
-	Type        string `json:"type"`
-	Cardinality int    `json:"cardinality"`
+	Type     string `json:"type"`
+	Name     string `json:"name"`
+	Distinct int    `json:"distinct"`
 }
 
 type Plan struct {
@@ -51,9 +52,10 @@ func generate(p *Plan) error {
 func initializeColumns(p *Plan) {
 	for _, planColumn := range p.PlanColumns {
 		value := createValueGenerator(planColumn.Type)
-		rot_base := p.Rows / planColumn.Cardinality
-		rot_mod := p.Rows % planColumn.Cardinality
-		column := Column{valueGenerator: value, rotation_base: rot_base, rotation_mod: rot_mod, count: rot_base}
+		rot_base := p.Rows / planColumn.Distinct
+		rot_mod := p.Rows % planColumn.Distinct
+		name := planColumn.Name
+		column := Column{valueGenerator: value, colName: name, rotationBase: rot_base, rotationMod: rot_mod, count: rot_base, totCount: 0}
 		p.Columns = append(p.Columns, &column)
 	}
 }
@@ -67,7 +69,7 @@ func validate(p *Plan) error {
 	}
 	// Checks cardinalities for each columns
 	for index, planColumn := range p.PlanColumns {
-		cardinality := planColumn.Cardinality
+		cardinality := planColumn.Distinct
 		if cardinality < 1 {
 			m := fmt.Sprintf("Error. Column %d: cardinality can't be lower than 1.", index)
 			return errors.New(m)
