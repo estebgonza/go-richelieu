@@ -45,9 +45,15 @@ func main() {
 			Action: generate,
 		},
 		{
+<<<<<<< HEAD
 			Name:   "create",
 			Usage:  "Create a generation plan",
 			Action: create,
+=======
+			Name:   "serve",
+			Usage:  "Execute the generation plan",
+			Action: serve,
+>>>>>>> 47055457e1e99e1e1fe83bf5f9f0f432fac5ae80
 		},
 	}
 
@@ -55,6 +61,11 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+func serve(c *cli.Context) error {
+	err := errors.New("Not implemented")
+	return err
 }
 
 func generate(c *cli.Context) error {
