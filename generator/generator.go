@@ -44,16 +44,16 @@ func generate(p *Plan) error {
 	if err != nil {
 		return err
 	}
-	csvwriter := csv.NewWriter(csvFile)
+	csvWriter := csv.NewWriter(csvFile)
 	for i := 0; i < p.Rows; i++ {
 		var row []string
 		// Build the row
 		for _, column := range p.Columns {
 			row = append(row, column.nextValue())
 		}
-		csvwriter.Write(row)
+		csvWriter.Write(row)
 	}
-	csvwriter.Flush()
+	csvWriter.Flush()
 	return nil
 }
 
@@ -63,10 +63,10 @@ func initializeColumns(p *Plan) error {
 		if err != nil {
 			return err
 		}
-		rot_base := p.Rows / planColumn.Distinct
-		rot_mod := p.Rows % planColumn.Distinct
+		rotBase := p.Rows / planColumn.Distinct
+		rotMod := p.Rows % planColumn.Distinct
 		name := planColumn.Name
-		column := Column{valueGenerator: value, colName: name, rotationBase: rot_base, rotationMod: rot_mod, count: rot_base, totCount: 0}
+		column := Column{valueGenerator: value, colName: name, rotationBase: rotBase, rotationMod: rotMod, count: rotBase, totCount: 0}
 		p.Columns = append(p.Columns, &column)
 	}
 	return nil
