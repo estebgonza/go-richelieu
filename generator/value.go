@@ -1,7 +1,6 @@
 package generator
 
 import (
-	"bytes"
 	"fmt"
 	"strconv"
 	"time"
@@ -27,11 +26,6 @@ func (s IntValue) GenerateValue(b string, c uint64) (string, error) {
 
 func (s DateValue) GenerateValue(b string, c uint64) (string, error) {
 	var date time.Time
-	var ret bytes.Buffer
 	date = gofakeit.Date()
-	_, err := fmt.Fprintf(&ret, "%v-%02d-%02d %02d:%02d:%02d", date.Year(), int(date.Month()), date.Day(), date.Hour(), date.Minute(), date.Second())
-	if err != nil {
-		return "", err
-	}
-	return ret.String(), nil
+	return fmt.Sprintf("%v-%02d-%02d %02d:%02d:%02d", date.Year(), int(date.Month()), date.Day(), date.Hour(), date.Minute(), date.Second()), nil
 }

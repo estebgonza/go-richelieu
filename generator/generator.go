@@ -4,7 +4,10 @@ import (
 	"encoding/csv"
 	"errors"
 	"fmt"
+	"log"
 	"os"
+	"strconv"
+	"sync"
 )
 
 type PlanColumn struct {
@@ -14,9 +17,10 @@ type PlanColumn struct {
 }
 
 type Plan struct {
-	Rows        int          `json:"rows"`
-	PlanColumns []PlanColumn `json:"columns"`
-	Columns     []*Column    `json:"-"`
+	Rows        int				`json:"rows"`
+	Files		int				`json:"files"`
+	PlanColumns []PlanColumn	`json:"columns"`
+	Columns     []*Column		`json:"-"`
 }
 
 const (
@@ -40,20 +44,32 @@ func Execute(p *Plan) error {
 }
 
 func generate(p *Plan) error {
-	csvFile, err := os.Create("output.csv")
-	if err != nil {
-		return err
+	wg := sync.WaitGroup{}
+	for i := 0; i < p.Files; i++ {
+		wg.Add(1)
+		go func(i int) {
+			fileName := "output_" + strconv.Itoa(i) + ".csv"
+			csvFile, err := os.Create(fileName)
+			if err != nil {
+				log.Println(err)
+			}
+			csvWriter := csv.NewWriter(csvFile)
+			for j := 0; j < p.Rows / p.Files; j++ {
+				var row []string
+				// Build the row
+				for _, column := range p.Columns {
+					row = append(row, column.nextValue())
+				}
+				csvWriter.Write(row)
+				if j % 10000 == 0 && j != 0 {
+					csvWriter.Flush()
+				}
+			}
+			csvWriter.Flush()
+			wg.Done()
+		}(i)
 	}
-	csvWriter := csv.NewWriter(csvFile)
-	for i := 0; i < p.Rows; i++ {
-		var row []string
-		// Build the row
-		for _, column := range p.Columns {
-			row = append(row, column.nextValue())
-		}
-		csvWriter.Write(row)
-	}
-	csvWriter.Flush()
+	wg.Wait()
 	return nil
 }
 
