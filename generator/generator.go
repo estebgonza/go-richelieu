@@ -43,8 +43,13 @@ func Execute(p *Plan) error {
 	return nil
 }
 
+var ch = make(chan []int)
+
 func generate(p *Plan) error {
 	wg := sync.WaitGroup{}
+	go manageCardinality(p)
+	locArray := []int{1, 0}
+	ch <- locArray
 	for i := 0; i < p.Files; i++ {
 		wg.Add(1)
 		go func(i int) {
@@ -57,10 +62,12 @@ func generate(p *Plan) error {
 			for j := 0; j < p.Rows / p.Files; j++ {
 				var row []string
 				// Build the row
-				for _, column := range p.Columns {
+				for index, column := range p.Columns {
 					// TODO use a master thread for cardinality management that listen to all the other threads and
 					// change the c.currentValue accordingly
-					row = append(row, column.nextValue())
+					row = append(row, column.value)
+					locArray = []int{1, index}
+					ch <- locArray
 				}
 				csvWriter.Write(row)
 				if j % 10000 == 0 && j != 0 {
@@ -72,7 +79,22 @@ func generate(p *Plan) error {
 		}(i)
 	}
 	wg.Wait()
+	ch <- []int{0, 0}
 	return nil
+}
+
+func manageCardinality(p *Plan) {
+	var v []int
+	for {
+		v =<- ch
+		c := p.Columns[v[1]]
+		if v[0] == 0 {
+			close(ch)
+			break
+		} else {
+			c.nextValue()
+		}
+	}
 }
 
 func initializeColumns(p *Plan) error {
@@ -85,6 +107,7 @@ func initializeColumns(p *Plan) error {
 		rotMod := p.Rows % planColumn.Distinct
 		name := planColumn.Name
 		column := Column{valueGenerator: value, colName: name, rotationBase: rotBase, rotationMod: rotMod, count: rotBase, totCount: 0}
+		column.init()
 		p.Columns = append(p.Columns, &column)
 	}
 	return nil

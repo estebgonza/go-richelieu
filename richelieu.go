@@ -55,7 +55,6 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Println("Done generating")
 }
 
 func generate(c *cli.Context) error {
@@ -73,7 +72,7 @@ func generate(c *cli.Context) error {
 	if errExec != nil {
 		return errExec
 	}
-	fmt.Printf("Done. %d rows just generated.\n", p.Rows)
+	log.Printf("Done. %d rows just generated.\n", p.Rows)
 	return nil
 }
 
