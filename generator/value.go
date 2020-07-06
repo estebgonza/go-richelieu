@@ -11,9 +11,14 @@ import (
 type StringValue struct{}
 type IntValue struct{}
 type DateValue struct{}
+type IdIntValue struct{}
 
 type Value interface {
 	GenerateValue(b string, c uint64) (string, error)
+}
+
+func (s IdIntValue) GenerateValue(b string, c uint64) (string, error) {
+	return strconv.Itoa(int(gofakeit.Uint64())), nil
 }
 
 func (s StringValue) GenerateValue(b string, c uint64) (string, error) {
