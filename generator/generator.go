@@ -48,7 +48,7 @@ func generate(p *Plan) error {
 	for i := 0; i < p.Files; i++ {
 		wg.Add(1)
 		go func(i int) {
-			fileName := "output_" + strconv.Itoa(i) + ".csv"
+			fileName := "output/output_" + strconv.Itoa(i) + ".csv"
 			csvFile, err := os.Create(fileName)
 			if err != nil {
 				log.Println(err)
@@ -58,6 +58,8 @@ func generate(p *Plan) error {
 				var row []string
 				// Build the row
 				for _, column := range p.Columns {
+					// TODO use a master thread for cardinality management that listen to all the other threads and
+					// change the c.currentValue accordingly
 					row = append(row, column.nextValue())
 				}
 				csvWriter.Write(row)
