@@ -20,16 +20,22 @@ func (c *Column) init() {
 
 func (c *Column) nextValue() string {
 	/** The cardinality magic should be here. */
-	if c.count == c.rotationBase {
+	switch c.valueGenerator.(type) {
+	case IdIntValue:
 		newValue, _ := c.valueGenerator.GenerateValue(c.colName, c.totCount)
 		c.value = newValue
-	} else if c.count == 0 && c.rotationMod > 0 {
-		c.rotationMod--
+	default:
+		if c.count == c.rotationBase {
+			newValue, _ := c.valueGenerator.GenerateValue(c.colName, c.totCount)
+			c.value = newValue
+		} else if c.count == 0 && c.rotationMod > 0 {
+			c.rotationMod--
+		}
+		c.count--
+		if c.count < 0 || (c.count == 0 && c.rotationMod == 0) {
+			c.count = c.rotationBase
+		}
+		c.totCount++
 	}
-	c.count--
-	if c.count < 0 || (c.count == 0 && c.rotationMod == 0) {
-		c.count = c.rotationBase
-	}
-	c.totCount++
 	return c.value
 }

@@ -1,11 +1,11 @@
 {
   "rows":100000,
-  "files":10,
+  "files":5,
   "columns":[
     {
-      "type":"INT",
-      "name":"0_INT",
-      "distinct":100000
+      "type":"ID_INT",
+      "name":"0_ID_INT",
+      "distinct":1
     },
     {
       "type":"STRING",

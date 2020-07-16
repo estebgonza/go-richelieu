@@ -24,6 +24,7 @@ type Plan struct {
 }
 
 const (
+	ID_INT_TYPE = "ID_INT"
 	INT_TYPE    = "INT"
 	DATE_TYPE   = "DATE"
 	STRING_TYPE = "STRING"
@@ -144,6 +145,8 @@ func createValueGenerator(t string) (val Value, err error) {
 	switch t {
 	case INT_TYPE:
 		return IntValue{}, nil
+	case ID_INT_TYPE:
+		return IdIntValue{}, nil
 	case DATE_TYPE:
 		return DateValue{}, nil
 	case STRING_TYPE:
