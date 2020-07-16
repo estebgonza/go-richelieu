@@ -4,7 +4,10 @@ import (
 	"encoding/csv"
 	"errors"
 	"fmt"
+	"log"
 	"os"
+	"strconv"
+	"sync"
 )
 
 type PlanColumn struct {
@@ -14,9 +17,10 @@ type PlanColumn struct {
 }
 
 type Plan struct {
-	Rows        int          `json:"rows"`
-	PlanColumns []PlanColumn `json:"columns"`
-	Columns     []*Column    `json:"-"`
+	Rows        int				`json:"rows"`
+	Files		int				`json:"files"`
+	PlanColumns []PlanColumn	`json:"columns"`
+	Columns     []*Column		`json:"-"`
 }
 
 const (
@@ -39,22 +43,58 @@ func Execute(p *Plan) error {
 	return nil
 }
 
+var ch = make(chan []int)
+
 func generate(p *Plan) error {
-	csvFile, err := os.Create("output.csv")
-	if err != nil {
-		return err
+	wg := sync.WaitGroup{}
+	go manageCardinality(p)
+	locArray := []int{1, 0}
+	ch <- locArray
+	for i := 0; i < p.Files; i++ {
+		wg.Add(1)
+		go func(i int) {
+			fileName := "output/output_" + strconv.Itoa(i) + ".csv"
+			csvFile, err := os.Create(fileName)
+			if err != nil {
+				log.Println(err)
+			}
+			csvWriter := csv.NewWriter(csvFile)
+			for j := 0; j < p.Rows / p.Files; j++ {
+				var row []string
+				// Build the row
+				for index, column := range p.Columns {
+					// TODO use a master thread for cardinality management that listen to all the other threads and
+					// change the c.currentValue accordingly
+					row = append(row, column.value)
+					locArray = []int{1, index}
+					ch <- locArray
+				}
+				csvWriter.Write(row)
+				if j % 10000 == 0 && j != 0 {
+					csvWriter.Flush()
+				}
+			}
+			csvWriter.Flush()
+			wg.Done()
+		}(i)
 	}
-	csvwriter := csv.NewWriter(csvFile)
-	for i := 0; i < p.Rows; i++ {
-		var row []string
-		// Build the row
-		for _, column := range p.Columns {
-			row = append(row, column.nextValue())
-		}
-		csvwriter.Write(row)
-	}
-	csvwriter.Flush()
+	wg.Wait()
+	ch <- []int{0, 0}
 	return nil
+}
+
+func manageCardinality(p *Plan) {
+	var v []int
+	for {
+		v =<- ch
+		c := p.Columns[v[1]]
+		if v[0] == 0 {
+			close(ch)
+			break
+		} else {
+			c.nextValue()
+		}
+	}
 }
 
 func initializeColumns(p *Plan) error {
@@ -63,10 +103,11 @@ func initializeColumns(p *Plan) error {
 		if err != nil {
 			return err
 		}
-		rot_base := p.Rows / planColumn.Distinct
-		rot_mod := p.Rows % planColumn.Distinct
+		rotBase := p.Rows / planColumn.Distinct
+		rotMod := p.Rows % planColumn.Distinct
 		name := planColumn.Name
-		column := Column{valueGenerator: value, colName: name, rotationBase: rot_base, rotationMod: rot_mod, count: rot_base, totCount: 0}
+		column := Column{valueGenerator: value, colName: name, rotationBase: rotBase, rotationMod: rotMod, count: rotBase, totCount: 0}
+		column.init()
 		p.Columns = append(p.Columns, &column)
 	}
 	return nil

@@ -1,1 +1,36 @@
-{"rows":10000,"columns":[{"type":"INT","name":"0_INT","distinct":5},{"type":"STRING","name":"1_STRING","distinct":5},{"type":"INT","name":"2_INT","distinct":5},{"type":"INT","name":"3_INT","distinct":5},{"type":"INT","name":"4_INT","distinct":5},{"type":"INT","name":"5_INT","distinct":5}]}
+{
+  "rows":100000,
+  "files":10,
+  "columns":[
+    {
+      "type":"INT",
+      "name":"0_INT",
+      "distinct":100000
+    },
+    {
+      "type":"STRING",
+      "name":"1_STRING",
+      "distinct":5
+    },
+    {
+      "type":"INT",
+      "name":"2_INT",
+      "distinct":400
+    },
+    {
+      "type":"INT",
+      "name":"3_INT",
+      "distinct":2000
+    },
+    {
+      "type":"INT",
+      "name":"4_INT",
+      "distinct":50
+    },
+    {
+      "type":"INT",
+      "name":"5_INT",
+      "distinct":10000
+    }
+  ]
+}

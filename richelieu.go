@@ -32,7 +32,6 @@ Usage: {{.HelpName}} [command]
 `
 
 func main() {
-	log.SetFlags(0)
 	cli.AppHelpTemplate = fmt.Sprintf(helpTemplate)
 	app := cli.NewApp()
 	app.Name = appName
@@ -51,7 +50,7 @@ func main() {
 			Action: create,
 		},
 	}
-
+	log.Println("Starting generation...")
 	err := app.Run(os.Args)
 	if err != nil {
 		log.Fatal(err)
@@ -73,7 +72,7 @@ func generate(c *cli.Context) error {
 	if errExec != nil {
 		return errExec
 	}
-	fmt.Printf("Done. %d rows just generated.\n", p.Rows)
+	log.Printf("Done. %d rows just generated.\n", p.Rows)
 	return nil
 }
 
