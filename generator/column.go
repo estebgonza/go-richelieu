@@ -13,11 +13,6 @@ type Column struct {
 	totCount     uint64
 }
 
-func (c *Column) init() {
-	newValue, _ := c.valueGenerator.GenerateValue(c.colName, c.totCount)
-	c.value = newValue
-}
-
 func (c *Column) nextValue() string {
 	/** The cardinality magic should be here. */
 	switch c.valueGenerator.(type) {

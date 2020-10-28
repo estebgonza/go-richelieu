@@ -10,27 +10,27 @@
     {
       "type":"STRING",
       "name":"1_STRING",
-      "distinct":5
+      "distinct":5000
     },
     {
       "type":"INT",
       "name":"2_INT",
-      "distinct":400
+      "distinct":4
     },
     {
       "type":"INT",
       "name":"3_INT",
-      "distinct":2000
+      "distinct":2500
     },
     {
       "type":"INT",
       "name":"4_INT",
-      "distinct":50
+      "distinct":28000
     },
     {
       "type":"INT",
       "name":"5_INT",
-      "distinct":10000
+      "distinct":1000000
     }
   ]
 }
