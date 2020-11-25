@@ -10,12 +10,14 @@ import (
 	"sync"
 )
 
+// PlanColumn The plan per column as described in the input json file
 type PlanColumn struct {
 	Type     string `json:"type"`
 	Name     string `json:"name"`
 	Distinct int    `json:"distinct"`
 }
 
+// Plan Plan is the plan as described in the input json file
 type Plan struct {
 	Rows        int          `json:"rows"`
 	Files       int          `json:"files"`
@@ -30,6 +32,7 @@ const (
 	STRING_TYPE = "STRING"
 )
 
+// Execute Entrypoint of the generation plan
 func Execute(p *Plan) error {
 	if err := validate(p); err != nil {
 		return err

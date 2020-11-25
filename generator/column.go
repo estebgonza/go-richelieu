@@ -1,5 +1,6 @@
 package generator
 
+// Column Store useful values for rotation, as well as the current value struct of the column
 type Column struct {
 	colName string
 	// Last generated value
