@@ -84,7 +84,7 @@ func create(c *cli.Context) error {
 	cols := strings.Split(c.Args().Get(0), ",")
 	var columns []generator.PlanColumn
 	for index, t := range cols {
-		if err := generator.ChecksSupportedType(t); err != nil {
+		if err := generator.ChecksSupportedType(t, "1"); err != nil { // Need dummy for 2nd argument
 			return err
 		}
 		var pc generator.PlanColumn

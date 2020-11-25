@@ -6,7 +6,7 @@ type Column struct {
 	// Last generated value
 	value string
 	// Value generator
-	valueGenerator Value
+	valueGenerator value
 	// Number of value rotation
 	rotationBase int
 	rotationMod  int
@@ -17,13 +17,11 @@ type Column struct {
 func (c *Column) nextValue() string {
 	/** The cardinality magic should be here. */
 	switch c.valueGenerator.(type) {
-	case IdIntValue:
-		newValue, _ := c.valueGenerator.GenerateValue()
-		c.value = newValue
+	case *idIntValue:
+		c.valueGenerator.generateValue()
 	default:
 		if c.count == c.rotationBase {
-			newValue, _ := c.valueGenerator.GenerateValue()
-			c.value = newValue
+			c.valueGenerator.generateValue()
 		} else if c.count == 0 && c.rotationMod > 0 {
 			c.rotationMod--
 		}
