@@ -49,7 +49,7 @@ func (v *stringValue) generateValue() {
 }
 
 func (v *dateValue) generateValue() {
-	v.currentValue.Add(v.step)
+	v.currentValue = v.currentValue.Add(v.step)
 }
 
 func (v *idIntValue) init(i string) {
@@ -74,7 +74,7 @@ func (v *dateValue) init(i string) {
 	if err != nil {
 		log.Fatalln(err)
 	}
-	v.step = 1000000 // 1M nanoseconds = 1s
+	v.step = 1000000 // 1M nanoseconds = 1ms
 }
 
 func (v idIntValue) getCurrentValue() string {
