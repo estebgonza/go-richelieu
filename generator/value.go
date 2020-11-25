@@ -1,36 +1,94 @@
 package generator
 
 import (
-	"fmt"
+	"log"
 	"strconv"
 	"time"
 
 	"github.com/brianvoe/gofakeit/v4"
 )
 
-type StringValue struct{}
-type IntValue struct{}
-type DateValue struct{}
-type IdIntValue struct{}
-
-type Value interface {
-	GenerateValue(b string, c uint64) (string, error)
+type stringValue struct {
+	prefix       string
+	currentValue string
+	step         int64
+	currentStep  int64
 }
 
-func (s IdIntValue) GenerateValue(b string, c uint64) (string, error) {
-	return strconv.Itoa(int(gofakeit.Uint64())), nil
+type intValue struct {
+	currentValue int64
+	step         int64
 }
 
-func (s StringValue) GenerateValue(b string, c uint64) (string, error) {
-	return b + "_" + strconv.Itoa(int(c)), nil
+type dateValue struct {
+	currentValue time.Time
+	step         time.Duration
 }
 
-func (s IntValue) GenerateValue(b string, c uint64) (string, error) {
-	return strconv.Itoa(int(c)), nil
+type idIntValue struct {
+	currentValue uint64
 }
 
-func (s DateValue) GenerateValue(b string, c uint64) (string, error) {
-	var date time.Time
-	date = gofakeit.Date()
-	return fmt.Sprintf("%v-%02d-%02d %02d:%02d:%02d", date.Year(), int(date.Month()), date.Day(), date.Hour(), date.Minute(), date.Second()), nil
+type value interface {
+	getCurrentValue() string
+	generateValue()
+	init(i string)
+}
+
+func (v *idIntValue) generateValue() {
+	v.currentValue = gofakeit.Uint64()
+}
+
+func (v *intValue) generateValue() {
+	v.currentValue += v.step
+}
+
+func (v *stringValue) generateValue() {
+	v.currentStep = v.currentStep + v.step
+	v.currentValue = v.prefix + "_" + strconv.FormatInt(v.currentStep, 10)
+}
+
+func (v *dateValue) generateValue() {
+	v.currentValue = v.currentValue.Add(v.step)
+}
+
+func (v *idIntValue) init(i string) {
+	v.currentValue = gofakeit.Uint64()
+}
+
+func (v *intValue) init(i string) {
+	v.currentValue, _ = strconv.ParseInt(i, 10, 64)
+	v.step = 1
+}
+
+func (v *stringValue) init(i string) {
+	v.prefix = i
+	v.currentStep = 1
+	v.currentValue = v.prefix + "_" + strconv.FormatInt(v.currentStep, 10)
+	v.step = 1
+}
+
+func (v *dateValue) init(i string) {
+	var err error
+	v.currentValue, err = time.Parse("2006-01-02 15:04:05", i)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	v.step = 1000000 // 1M nanoseconds = 1ms
+}
+
+func (v idIntValue) getCurrentValue() string {
+	return strconv.FormatUint(v.currentValue, 10)
+}
+
+func (v intValue) getCurrentValue() string {
+	return strconv.FormatInt(v.currentValue, 10)
+}
+
+func (v stringValue) getCurrentValue() string {
+	return v.currentValue
+}
+
+func (v dateValue) getCurrentValue() string {
+	return v.currentValue.String()
 }

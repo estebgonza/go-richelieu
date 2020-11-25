@@ -65,7 +65,7 @@ func generate(c *cli.Context) error {
 	gofakeit.Seed(time.Now().UnixNano())
 	planFile, err := os.Open(defaultPlanFile)
 	if err != nil {
-		return errors.New("No plan.json found.")
+		return errors.New("No plan.json found")
 	}
 	byteValue, _ = ioutil.ReadAll(planFile)
 	json.Unmarshal(byteValue, &p)
@@ -79,12 +79,12 @@ func generate(c *cli.Context) error {
 
 func create(c *cli.Context) error {
 	if c.Args().Len() == 0 {
-		return errors.New("Please specify columns type to init a generation plan.")
+		return errors.New("Please specify columns type to init a generation plan")
 	}
 	cols := strings.Split(c.Args().Get(0), ",")
 	var columns []generator.PlanColumn
 	for index, t := range cols {
-		if err := generator.ChecksSupportedType(t); err != nil {
+		if err := generator.ChecksSupportedType(t, "1"); err != nil { // Need dummy for 2nd argument
 			return err
 		}
 		var pc generator.PlanColumn
