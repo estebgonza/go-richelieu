@@ -86,7 +86,7 @@ func generate(p *Plan) error {
 func initializeColumns(p *Plan) error {
 	for _, planColumn := range p.PlanColumns {
 		value, err := createValueGenerator(planColumn.Type)
-		// TODO: Add a value init, and a step calculator
+		// TODO: Add a step calculator
 		value.init(planColumn.Start)
 		if err != nil {
 			return err

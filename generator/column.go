@@ -20,7 +20,9 @@ func (c *Column) nextValue() string {
 	case *idIntValue:
 		c.valueGenerator.generateValue()
 	default:
-		if c.count == c.rotationBase {
+		if c.totCount == 0 {
+			// Do nothing. We already have init value from plan.json or default one
+		} else if c.count == c.rotationBase {
 			c.valueGenerator.generateValue()
 		} else if c.count == 0 && c.rotationMod > 0 {
 			c.rotationMod--
