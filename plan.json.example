@@ -18,19 +18,18 @@
       "distinct":400
     },
     {
-      "type":"INT",
-      "name":"3_INT",
-      "distinct":2000
+      "type":"FLOAT",
+      "name":"3_FLOAT",
+      "distinct": 5,
+      "start": "0.00",
+      "end": "1.00"
     },
     {
-      "type":"INT",
-      "name":"4_INT",
-      "distinct":50
-    },
-    {
-      "type":"INT",
-      "name":"5_INT",
-      "distinct":10000
+      "type":"DATE",
+      "name":"4_DATE",
+      "distinct": 50,
+      "start": "2020-01-01 15:00:00",
+      "end": "2020-01-02 15:05:00"
     }
   ]
 }

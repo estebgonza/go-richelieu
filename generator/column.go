@@ -17,11 +17,11 @@ func (c *Column) nextValue() string {
 	/** The cardinality magic should be here. */
 	switch c.valueGenerator.(type) {
 	case IdIntValue:
-		newValue, _ := c.valueGenerator.GenerateValue(c.colName, c.totCount)
+		newValue, _ := c.valueGenerator.GenerateValue()
 		c.value = newValue
 	default:
 		if c.count == c.rotationBase {
-			newValue, _ := c.valueGenerator.GenerateValue(c.colName, c.totCount)
+			newValue, _ := c.valueGenerator.GenerateValue()
 			c.value = newValue
 		} else if c.count == 0 && c.rotationMod > 0 {
 			c.rotationMod--

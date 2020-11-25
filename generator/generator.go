@@ -17,10 +17,10 @@ type PlanColumn struct {
 }
 
 type Plan struct {
-	Rows        int				`json:"rows"`
-	Files		int				`json:"files"`
-	PlanColumns []PlanColumn	`json:"columns"`
-	Columns     []*Column		`json:"-"`
+	Rows        int          `json:"rows"`
+	Files       int          `json:"files"`
+	PlanColumns []PlanColumn `json:"columns"`
+	Columns     []*Column    `json:"-"`
 }
 
 const (
@@ -55,7 +55,7 @@ func generate(p *Plan) error {
 				log.Println(err)
 			}
 			csvWriter := csv.NewWriter(csvFile)
-			for j := 0; j < p.Rows / p.Files; j++ {
+			for j := 0; j < p.Rows/p.Files; j++ {
 				var row []string
 				// Build the row
 				for _, column := range p.Columns {
@@ -64,7 +64,7 @@ func generate(p *Plan) error {
 					row = append(row, column.nextValue())
 				}
 				csvWriter.Write(row)
-				if j % 10000 == 0 && j != 0 {
+				if j%10000 == 0 && j != 0 {
 					csvWriter.Flush()
 				}
 			}
@@ -79,6 +79,7 @@ func generate(p *Plan) error {
 func initializeColumns(p *Plan) error {
 	for _, planColumn := range p.PlanColumns {
 		value, err := createValueGenerator(planColumn.Type)
+		// TODO: Add a value init, and a step calculator
 		if err != nil {
 			return err
 		}
