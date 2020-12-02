@@ -15,7 +15,6 @@ type Column struct {
 }
 
 func (c *Column) nextValue() string {
-	/** The cardinality magic should be here. */
 	switch c.valueGenerator.(type) {
 	case *idIntValue:
 		c.valueGenerator.generateValue()
