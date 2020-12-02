@@ -85,8 +85,9 @@ func generate(p *Plan) error {
 
 func initializeColumns(p *Plan) error {
 	for _, planColumn := range p.PlanColumns {
-		value, err := createValueGenerator(planColumn.Type, planColumn.Start)
+		value, err := createValueGenerator(planColumn.Type)
 		// TODO: Add a value init, and a step calculator
+		value.init(planColumn.Start)
 		if err != nil {
 			return err
 		}
@@ -122,12 +123,12 @@ func validate(p *Plan) error {
 }
 
 // ChecksSupportedType Check that input type is supported by Richelieu by creating a temp instance of a Value
-func ChecksSupportedType(t string, i string) error {
-	_, err := createValueGenerator(t, i)
+func ChecksSupportedType(t string) error {
+	_, err := createValueGenerator(t)
 	return err
 }
 
-func createValueGenerator(t string, i string) (value, error) {
+func createValueGenerator(t string) (value, error) {
 	var v value
 	switch t {
 	case intType:
@@ -143,6 +144,5 @@ func createValueGenerator(t string, i string) (value, error) {
 	default:
 		return nil, errors.New("Unsupported type " + t)
 	}
-	v.init(i)
 	return v, nil
 }
