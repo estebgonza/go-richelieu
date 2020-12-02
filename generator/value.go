@@ -20,6 +20,11 @@ type intValue struct {
 	step         int64
 }
 
+type floatValue struct {
+	currentValue float64
+	step         float64
+}
+
 type dateValue struct {
 	currentValue time.Time
 	step         time.Duration
@@ -43,6 +48,10 @@ func (v *intValue) generateValue() {
 	v.currentValue += v.step
 }
 
+func (v *floatValue) generateValue() {
+	v.currentValue += v.step
+}
+
 func (v *stringValue) generateValue() {
 	v.currentStep = v.currentStep + v.step
 	v.currentValue = v.prefix + "_" + strconv.FormatInt(v.currentStep, 10)
@@ -59,6 +68,11 @@ func (v *idIntValue) init(i string) {
 func (v *intValue) init(i string) {
 	v.currentValue, _ = strconv.ParseInt(i, 10, 64)
 	v.step = 1
+}
+
+func (v *floatValue) init(i string) {
+	v.currentValue, _ = strconv.ParseFloat(i, 64)
+	v.step = 0.1
 }
 
 func (v *stringValue) init(i string) {
@@ -83,6 +97,10 @@ func (v idIntValue) getCurrentValue() string {
 
 func (v intValue) getCurrentValue() string {
 	return strconv.FormatInt(v.currentValue, 10)
+}
+
+func (v floatValue) getCurrentValue() string {
+	return strconv.FormatFloat(v.currentValue, 'f', 2, 64)
 }
 
 func (v stringValue) getCurrentValue() string {
