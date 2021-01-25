@@ -23,8 +23,8 @@
       "type":"FLOAT",
       "name":"3_FLOAT",
       "distinct": 5,
-      "start": "0.00",
-      "end": "1.00"
+      "start": "3.00",
+      "end": "9.00"
     },
     {
       "type":"DATE",

@@ -28,9 +28,9 @@ type Plan struct {
 }
 
 const (
-	intType   = "INT"
-	idIntType = "ID_INT"
-	// floatType  = "FLOAT"
+	intType    = "INT"
+	idIntType  = "ID_INT"
+	floatType  = "FLOAT"
 	dateType   = "DATE"
 	stringType = "STRING"
 )
@@ -135,8 +135,8 @@ func createValueGenerator(t string) (value, error) {
 		v = &intValue{}
 	case idIntType:
 		v = &idIntValue{}
-	// case floatType:
-	// 	v = &floatValue{}
+	case floatType:
+		v = &floatValue{}
 	case dateType:
 		v = &dateValue{}
 	case stringType:
