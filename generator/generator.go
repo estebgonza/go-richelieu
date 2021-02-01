@@ -70,7 +70,7 @@ func generate(p *Plan) error {
 						for _, column := range table.Columns {
 							row = append(row, column.getValue(firstRow+j, table.Rows))
 						}
-						//csvWriter.Write(row)
+						csvWriter.Write(row)
 						if j%10000 == 0 && j != 0 {
 							csvWriter.Flush()
 							// Display a progress status
