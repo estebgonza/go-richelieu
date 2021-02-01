@@ -1,7 +1,6 @@
 package generator
 
 import (
-	"encoding/csv"
 	"errors"
 	"fmt"
 	"log"
@@ -56,30 +55,43 @@ func generate(p *Plan) error {
 					if err != nil {
 						log.Println(err)
 					}
-					csvWriter := csv.NewWriter(csvFile)
-
 					rowsCurrentFile := (table.Rows / table.Files)
 					firstRow := (i * rowsCurrentFile)
 					if i == table.Files-1 {
 						rowsCurrentFile = table.Rows - (table.Files-1)*(table.Rows/table.Files)
 					}
 
+					var row []string
+					var rowsBuffer []string
 					for j := 0; j < rowsCurrentFile; j++ {
-						var row []string
-						// Build the row
-						for _, column := range table.Columns {
-							row = append(row, column.getValue(firstRow+j, table.Rows))
+
+						if j == 0 { // Build the first row
+							for _, column := range table.Columns {
+								row = append(row, column.getValue(firstRow+j, table.Rows))
+							}
+						} else { // For performane, only update columns with distinct > 1
+							for c, column := range table.Columns {
+								if column.Distinct > 1 {
+									row[c] = column.getValue(firstRow+j, table.Rows)
+								}
+							}
 						}
-						csvWriter.Write(row)
+
+						rowsBuffer = append(rowsBuffer, strings.Join(row, ","))
 						if j%10000 == 0 && j != 0 {
-							csvWriter.Flush()
+							// Note: for performance, use WriteString rather than a csvWriter
+							csvFile.WriteString(strings.Join(rowsBuffer, "\n"))
+							rowsBuffer = nil
+
 							// Display a progress status
 							if table.Rows >= 1000000 && j%100000 == 0 {
 								fmt.Printf(".")
 							}
 						}
 					}
-					csvWriter.Flush()
+					csvFile.WriteString(strings.Join(rowsBuffer, "\n"))
+					rowsBuffer = nil
+					csvFile.Close()
 					wg.Done()
 				}(i)
 			}
