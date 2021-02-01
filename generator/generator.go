@@ -7,142 +7,195 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"strings"
 	"sync"
-)
+	"time"
 
-// PlanColumn The plan per column as described in the input json file
-type PlanColumn struct {
-	Type     string `json:"type"`
-	Name     string `json:"name"`
-	Distinct int    `json:"distinct"`
-	Start    string `json:"start"`
-	End      string `json:"end"`
-}
-
-// Plan Plan is the plan as described in the input json file
-type Plan struct {
-	Rows        int          `json:"rows"`
-	Files       int          `json:"files"`
-	PlanColumns []PlanColumn `json:"columns"`
-	Columns     []*Column    `json:"-"`
-}
-
-const (
-	intType    = "INT"
-	idIntType  = "ID_INT"
-	floatType  = "FLOAT"
-	dateType   = "DATE"
-	stringType = "STRING"
+	"github.com/estebgonza/go-richelieu/constants"
 )
 
 // Execute Entrypoint of the generation plan
-func Execute(p *Plan) error {
-	if err := validate(p); err != nil {
+func Generate() error {
+	// Read input json file plan
+	p, err := ReadFromFile(constants.DefaultPlanFile)
+	if err != nil {
 		return err
 	}
+
 	// Initialize Column from PlanColumns
 	if err := initializeColumns(p); err != nil {
 		return err
 	}
+
 	// Generate rows
-	generate(p)
+	if err := generate(p); err != nil {
+		return err
+	}
+
+	// Export load commands
+	if err := exportLoadDbCommands(p); err != nil {
+		return err
+	}
 
 	return nil
 }
 
 func generate(p *Plan) error {
-	wg := sync.WaitGroup{}
-	for i := 0; i < p.Files; i++ {
-		wg.Add(1)
-		go func(i int) {
-			fileName := "output/output_" + strconv.Itoa(i) + ".csv"
-			csvFile, err := os.Create(fileName)
-			if err != nil {
-				log.Println(err)
-			}
-			csvWriter := csv.NewWriter(csvFile)
-			for j := 0; j < p.Rows/p.Files; j++ {
-				var row []string
-				// Build the row
-				for _, column := range p.Columns {
-					// TODO use a master thread for cardinality management that listen to all the other threads and
-					// change the c.currentValue accordingly
-					column.nextValue()
-					row = append(row, column.valueGenerator.getCurrentValue())
-				}
-				csvWriter.Write(row)
-				if j%10000 == 0 && j != 0 {
+	_ = os.Mkdir("output", os.ModePerm) // Create output directory
+
+	for _, schema := range p.Schemas { // For each schema
+		for _, table := range schema.Tables { // For each table
+			// Multithread generation if several files are requested
+			wg := sync.WaitGroup{}
+			for i := 0; i < table.Files; i++ { // For each file
+				wg.Add(1) // Start a dedicated thread
+
+				go func(i int) {
+					fileName := "output/" + schema.Name + "." + table.Name + "_" + strconv.Itoa(i) + ".csv"
+					csvFile, err := os.Create(fileName)
+					if err != nil {
+						log.Println(err)
+					}
+					csvWriter := csv.NewWriter(csvFile)
+
+					rowsCurrentFile := (table.Rows / table.Files)
+					firstRow := (i * rowsCurrentFile)
+					if i == table.Files-1 {
+						rowsCurrentFile = table.Rows - (table.Files-1)*(table.Rows/table.Files)
+					}
+
+					for j := 0; j < rowsCurrentFile; j++ {
+						var row []string
+						// Build the row
+						for _, column := range table.Columns {
+							row = append(row, column.getValue(firstRow+j, table.Rows))
+						}
+						//csvWriter.Write(row)
+						if j%10000 == 0 && j != 0 {
+							csvWriter.Flush()
+							// Display a progress status
+							if table.Rows >= 1000000 && j%100000 == 0 {
+								fmt.Printf(".")
+							}
+						}
+					}
 					csvWriter.Flush()
-				}
+					wg.Done()
+				}(i)
 			}
-			csvWriter.Flush()
-			wg.Done()
-		}(i)
+			wg.Wait()
+			if table.Rows >= 1000000 {
+				fmt.Printf("\n")
+			}
+			log.Println("Done generating " + schema.Name + "." + table.Name)
+		}
 	}
-	wg.Wait()
 	return nil
 }
 
 func initializeColumns(p *Plan) error {
-	for _, planColumn := range p.PlanColumns {
-		value, err := createValueGenerator(planColumn.Type)
-		// TODO: Add a step calculator
-		value.init(planColumn.Start)
-		if err != nil {
-			return err
+	// For each column of each table of each schema:
+	// - default prefix for string fields
+	// - mode default to table mode
+	// - split valuesList to slices
+	// - pre-calculate float and date steps
+	for s := range p.Schemas {
+		for t := range p.Schemas[s].Tables {
+			for c := range p.Schemas[s].Tables[t].Columns {
+				cp := &p.Schemas[s].Tables[t].Columns[c]
+				if cp.Type == "STRING" && cp.Prefix == "" {
+					cp.Prefix = "txt_"
+				}
+				if cp.Mode == "" {
+					cp.Mode = p.Schemas[s].Tables[t].Mode
+				}
+				if cp.Mode == "" {
+					cp.Mode = "ALTERNATE"
+				}
+				if cp.ValuesList != "" {
+					cp.ValuesSlice = strings.Split(cp.ValuesList, ";")
+				}
+				if cp.Type == "FLOAT" {
+					v1, _ := strconv.ParseFloat(cp.Start, 32)
+					v2, _ := strconv.ParseFloat(cp.End, 32)
+					if v2 <= v1 {
+						v2 = v1 + 1.0
+					}
+					cp.FloatStart = v1
+					cp.FloatStep = (v2 - v1) / float64(cp.Distinct)
+				}
+				if cp.Type == "DATE" {
+					if cp.Start == "" {
+						cp.Start = "2020-01-01 00:00:00"
+					}
+					if cp.End == "" {
+						cp.End = "2020-12-31 00:00:00"
+					}
+					v1, _ := time.Parse("2006-01-02 15:04:05", cp.Start)
+					v2, _ := time.Parse("2006-01-02 15:04:05", cp.End)
+					cp.DateStart = v1.Unix()
+					cp.DateStep = (v2.Unix() - v1.Unix()) / int64(cp.Distinct)
+				}
+			}
 		}
-		rotBase := p.Rows / planColumn.Distinct
-		rotMod := p.Rows % planColumn.Distinct
-		name := planColumn.Name
-		column := Column{valueGenerator: value, colName: name, rotationBase: rotBase, rotationMod: rotMod, count: rotBase, totCount: 0}
-		p.Columns = append(p.Columns, &column)
 	}
 	return nil
 }
 
-// Validate Plan inputs.
-// If validation fail returns an error.
+// Validate Plan (rows and cardinalities)
 func validate(p *Plan) error {
-	rows := p.Rows
-	if rows < 0 {
-		return errors.New("Expected rows can't be negative")
-	}
-	// Checks cardinalities for each columns
-	for index, planColumn := range p.PlanColumns {
-		cardinality := planColumn.Distinct
-		if cardinality < 1 {
-			m := fmt.Sprintf("Error. Column %d: cardinality can't be lower than 1.", index)
-			return errors.New(m)
-		}
-		if cardinality > rows {
-			m := fmt.Sprintf("Error. Column %d: cardinality can't be higher than number of rows (%d).", index, rows)
-			return errors.New(m)
+	// For each column of each table of each schema
+	for _, s := range p.Schemas {
+		for _, t := range s.Tables {
+			if t.Rows < 0 {
+				m := fmt.Sprintf("Error. Table %s: Expected rows can't be negative.", t.Name)
+				return errors.New(m)
+			}
+			for _, c := range t.Columns {
+				cardinality := c.Distinct
+				if cardinality < 1 {
+					m := fmt.Sprintf("Error. Column %s: cardinality can't be lower than 1.", c.Name)
+					return errors.New(m)
+				}
+
+			}
 		}
 	}
 	return nil
 }
 
-// ChecksSupportedType Check that input type is supported by Richelieu by creating a temp instance of a Value
-func ChecksSupportedType(t string) error {
-	_, err := createValueGenerator(t)
-	return err
-}
+func exportLoadDbCommands(p *Plan) error {
+	var commands []string
+	var cmd string
 
-func createValueGenerator(t string) (value, error) {
-	var v value
-	switch t {
-	case intType:
-		v = &intValue{}
-	case idIntType:
-		v = &idIntValue{}
-	case floatType:
-		v = &floatValue{}
-	case dateType:
-		v = &dateValue{}
-	case stringType:
-		v = &stringValue{}
-	default:
-		return nil, errors.New("Unsupported type " + t)
+	cmd = "# Load data to S3 after adapting S3 repository"
+	commands = append(commands, cmd)
+	cmd = "aws s3 cp ./output " + constants.DefaultS3Repository + " --recursive"
+	commands = append(commands, cmd)
+	commands = append(commands, "\n")
+
+	for _, s := range p.Schemas {
+		for _, t := range s.Tables {
+			for i := 0; i < t.Files; i++ {
+				fullName := s.Name + "." + t.Name
+				fileName := fullName + "_" + strconv.Itoa(i) + ".csv"
+				cmd = "LOAD DATA INPATH '" + constants.DefaultS3Repository + fileName + "' INTO TABLE " + fullName + " FORMAT CSV SEPARATOR ',';"
+				commands = append(commands, cmd)
+				cmd = "COMMIT " + fullName + ";"
+				commands = append(commands, cmd)
+			}
+		}
 	}
-	return v, nil
+
+	cmdFile, err := os.Create("./output/loadCommands.txt")
+	if err != nil {
+		return err
+	}
+
+	for _, l := range commands {
+		cmdFile.WriteString(l + "\n")
+	}
+	cmdFile.Close()
+
+	return nil
 }

@@ -4,4 +4,7 @@ richelieu
 .idea
 .vscode
 bin
-plan.json
+*.json
+*.txt
+.DS_Store
+queriescsv

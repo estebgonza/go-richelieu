@@ -1,26 +1,21 @@
 package main
 
+// TODO: Handle related cardinality (eg a column of description related to a column code)
+// TODO: Handle unbalanced cardinality (eg a value represented on 80% of lines  )
+
+// TODO: Extract tables row count from diag
+// TODO: Parse showMemory.csv to estimate relatives cardinalities between indexed columns
+
 import (
-	"encoding/json"
-	"errors"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
-	"strconv"
-	"strings"
 	"time"
 
-	"github.com/brianvoe/gofakeit/v4"
+	"github.com/estebgonza/go-richelieu/constants"
+	"github.com/estebgonza/go-richelieu/creator"
 	"github.com/estebgonza/go-richelieu/generator"
 	"github.com/urfave/cli/v2"
-)
-
-const (
-	appName         string = "Richelieu"
-	appDescription  string = "Data generator that respects cardinality and schema structures#."
-	appVersion      string = "0.1"
-	defaultPlanFile string = "plan.json"
 )
 
 const helpTemplate = `
@@ -34,70 +29,47 @@ Usage: {{.HelpName}} [command]
 func main() {
 	cli.AppHelpTemplate = fmt.Sprintf(helpTemplate)
 	app := cli.NewApp()
-	app.Name = appName
-	app.Usage = appDescription
-	app.Version = appVersion
+	app.Name = constants.AppName
+	app.Usage = constants.AppDescription
+	app.Version = constants.AppVersion
 
 	app.Commands = []*cli.Command{
 		{
-			Name:   "generate",
-			Usage:  "Execute the generation plan",
-			Action: generate,
+			Name:    "generate",
+			Usage:   "Generate the dataset from the plan.json input",
+			Aliases: []string{"g"},
+			Action:  func(c *cli.Context) error { return generator.Generate() },
 		},
 		{
-			Name:   "create",
-			Usage:  "Create a generation plan",
-			Action: create,
+			Name:    "readFromSchema",
+			Usage:   "Create a plan.json from db schema in createDataspace.txt",
+			Aliases: []string{"rs"},
+			Action:  func(c *cli.Context) error { return creator.CreateFromSchema() },
+		},
+		{
+			Name:    "readFromColumn",
+			Usage:   "Create a plan.json from column list argument",
+			Aliases: []string{"rc"},
+			Action:  func(c *cli.Context) error { return creator.CreateFromColumn(c.Args()) },
+		},
+		{
+			Name:    "readFromDico",
+			Usage:   "Update a plan.json from cardinality read in dictionary",
+			Aliases: []string{"rd"},
+			Action:  func(c *cli.Context) error { return creator.ReadCardinalityFromDictionaries() },
 		},
 	}
-	log.Println("Starting generation...")
+
+	app.CommandNotFound = func(c *cli.Context, command string) {
+		fmt.Printf("Command not found: %v\n", command)
+		cli.ShowAppHelp(c)
+	}
+
+	log.Println("Starting...")
+	startTime := time.Now()
 	err := app.Run(os.Args)
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Println("Done generating")
-}
-
-func generate(c *cli.Context) error {
-	var planFile *os.File
-	var byteValue []byte
-	var p generator.Plan
-	gofakeit.Seed(time.Now().UnixNano())
-	planFile, err := os.Open(defaultPlanFile)
-	if err != nil {
-		return errors.New("No plan.json found")
-	}
-	byteValue, _ = ioutil.ReadAll(planFile)
-	json.Unmarshal(byteValue, &p)
-	errExec := generator.Execute(&p)
-	if errExec != nil {
-		return errExec
-	}
-	fmt.Printf("Done. %d rows just generated.\n", p.Rows)
-	return nil
-}
-
-func create(c *cli.Context) error {
-	if c.Args().Len() == 0 {
-		return errors.New("Please specify columns type to init a generation plan")
-	}
-	cols := strings.Split(c.Args().Get(0), ",")
-	var columns []generator.PlanColumn
-	for index, t := range cols {
-		if err := generator.ChecksSupportedType(t); err != nil {
-			return err
-		}
-		var pc generator.PlanColumn
-		pc.Name = strings.ToLower(strconv.Itoa(index) + "_" + t)
-		pc.Distinct = 5
-		pc.Type = t
-		columns = append(columns, pc)
-	}
-
-	var plan generator.Plan
-	plan.Rows = 10000
-	plan.PlanColumns = columns
-	b, _ := json.Marshal(plan)
-	ioutil.WriteFile(defaultPlanFile, b, 0644)
-	return nil
+	log.Println("Done in", time.Since(startTime))
 }
