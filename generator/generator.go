@@ -188,14 +188,14 @@ func exportLoadDbCommands(p *Plan) error {
 
 	for _, s := range p.Schemas {
 		for _, t := range s.Tables {
+			fullName := s.Name + "." + t.Name
 			for i := 0; i < t.Files; i++ {
-				fullName := s.Name + "." + t.Name
 				fileName := fullName + "_" + strconv.Itoa(i) + ".csv"
 				cmd = "LOAD DATA INPATH '" + constants.DefaultS3Repository + fileName + "' INTO TABLE " + fullName + " FORMAT CSV SEPARATOR ',';"
 				commands = append(commands, cmd)
-				cmd = "COMMIT " + fullName + ";"
-				commands = append(commands, cmd)
 			}
+			cmd = "COMMIT " + fullName + ";"
+			commands = append(commands, cmd)
 		}
 	}
 
