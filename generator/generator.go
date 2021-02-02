@@ -80,7 +80,7 @@ func generate(p *Plan) error {
 						rowsBuffer = append(rowsBuffer, strings.Join(row, ","))
 						if j%10000 == 0 && j != 0 {
 							// Note: for performance, use WriteString rather than a csvWriter
-							csvFile.WriteString(strings.Join(rowsBuffer, "\n"))
+							csvFile.WriteString(strings.Join(rowsBuffer, "\n") + "\n")
 							rowsBuffer = nil
 
 							// Display a progress status
@@ -89,7 +89,7 @@ func generate(p *Plan) error {
 							}
 						}
 					}
-					csvFile.WriteString(strings.Join(rowsBuffer, "\n"))
+					csvFile.WriteString(strings.Join(rowsBuffer, "\n") + "\n")
 					rowsBuffer = nil
 					csvFile.Close()
 					wg.Done()
