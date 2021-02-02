@@ -44,16 +44,21 @@ func generate(p *Plan) error {
 
 	for _, schema := range p.Schemas { // For each schema
 		for _, table := range schema.Tables { // For each table
+
+			folderName := schema.Name + "." + table.Name
+			_ = os.Mkdir("output/"+folderName, os.ModePerm)
+
 			// Multithread generation if several files are requested
 			wg := sync.WaitGroup{}
 			for i := 0; i < table.Files; i++ { // For each file
 				wg.Add(1) // Start a dedicated thread
 
 				go func(i int) {
-					fileName := "output/" + schema.Name + "." + table.Name + "_" + strconv.Itoa(i) + ".csv"
+					fileName := "output/" + folderName + "/export_" + strconv.Itoa(i) + ".csv"
 					csvFile, err := os.Create(fileName)
 					if err != nil {
 						log.Println(err)
+						os.Exit(1)
 					}
 					rowsCurrentFile := (table.Rows / table.Files)
 					firstRow := (i * rowsCurrentFile)
@@ -80,7 +85,11 @@ func generate(p *Plan) error {
 						rowsBuffer = append(rowsBuffer, strings.Join(row, ","))
 						if j%10000 == 0 && j != 0 {
 							// Note: for performance, use WriteString rather than a csvWriter
-							csvFile.WriteString(strings.Join(rowsBuffer, "\n") + "\n")
+							_, err := csvFile.WriteString(strings.Join(rowsBuffer, "\n") + "\n")
+							if err != nil {
+								log.Println(err)
+								os.Exit(1)
+							}
 							rowsBuffer = nil
 
 							// Display a progress status
@@ -89,7 +98,11 @@ func generate(p *Plan) error {
 							}
 						}
 					}
-					csvFile.WriteString(strings.Join(rowsBuffer, "\n") + "\n")
+					_, err = csvFile.WriteString(strings.Join(rowsBuffer, "\n") + "\n")
+					if err != nil {
+						log.Println(err)
+						os.Exit(1)
+					}
 					rowsBuffer = nil
 					csvFile.Close()
 					wg.Done()
@@ -189,11 +202,8 @@ func exportLoadDbCommands(p *Plan) error {
 	for _, s := range p.Schemas {
 		for _, t := range s.Tables {
 			fullName := s.Name + "." + t.Name
-			for i := 0; i < t.Files; i++ {
-				fileName := fullName + "_" + strconv.Itoa(i) + ".csv"
-				cmd = "LOAD DATA INPATH '" + constants.DefaultS3Repository + fileName + "' INTO TABLE " + fullName + " FORMAT CSV SEPARATOR ',';"
-				commands = append(commands, cmd)
-			}
+			cmd = "LOAD DATA INPATH '" + strings.ReplaceAll(constants.DefaultS3Repository, "s3://", "s3a://") + "/" + fullName + "' INTO TABLE " + fullName + " FORMAT CSV SEPARATOR ',';"
+			commands = append(commands, cmd)
 			cmd = "COMMIT " + fullName + ";"
 			commands = append(commands, cmd)
 		}
