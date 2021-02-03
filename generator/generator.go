@@ -179,7 +179,7 @@ func validate(p *Plan) error {
 			for _, c := range t.Columns {
 				cardinality := c.Distinct
 				if cardinality < 1 {
-					m := fmt.Sprintf("Error. Column %s: cardinality can't be lower than 1.", c.Name)
+					m := fmt.Sprintf("Error. Column %s.%s.%s: cardinality can't be lower than 1.", s.Name, t.Name, c.Name)
 					return errors.New(m)
 				}
 

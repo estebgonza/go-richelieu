@@ -7,5 +7,6 @@ const (
 	DefaultPlanFile       string = "plan.json"
 	DefaultSchemaFile     string = "createDataspace.txt"
 	DefaultDictionaryFile string = "showDictionaries.csv"
+	DefaultTableCountFile string = "showTableCount.csv"
 	DefaultS3Repository   string = "s3://indexima-data/dummy_data/generated1/source"
 )

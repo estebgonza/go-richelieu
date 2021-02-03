@@ -224,7 +224,62 @@ func ReadCardinalityFromDictionaries() error {
 		if err != nil {
 			continue
 		}
+		if card < 1 {
+			continue
+		}
 		p.Schemas[schemaIndex].Tables[tableIndex].Columns[columnIndex].Distinct = card
+	}
+
+	// Delete old plan, to prevent a merge
+	_ = os.Remove(constants.DefaultPlanFile)
+
+	// Rewrite plan
+	return generator.WriteToFile(*p, constants.DefaultPlanFile)
+}
+
+func ReadTableCounts() error {
+
+	// Load current plan
+	p, err := generator.ReadFromFile(constants.DefaultPlanFile)
+	if err != nil {
+		return err
+	}
+
+	// Read dictionary
+	csvFile, err := os.Open(constants.DefaultTableCountFile)
+	if err != nil {
+		return err
+	}
+	csvReader := csv.NewReader(csvFile)
+
+	for {
+		record, err := csvReader.Read()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return err
+		}
+
+		schemaIndex := p.HasSchema(record[0])
+		if schemaIndex < 0 {
+			continue
+		}
+		tableIndex := p.Schemas[schemaIndex].HasTable(record[1])
+		if tableIndex < 0 {
+			continue
+		}
+		rowCount, err := strconv.Atoi(record[2])
+		if err != nil {
+			continue
+		}
+		if rowCount < 1 {
+			continue
+		}
+		p.Schemas[schemaIndex].Tables[tableIndex].Rows = rowCount
+		if rowCount > 1000000 && p.Schemas[schemaIndex].Tables[tableIndex].Files == 1 {
+			p.Schemas[schemaIndex].Tables[tableIndex].Files = 4
+		}
 	}
 
 	// Delete old plan, to prevent a merge

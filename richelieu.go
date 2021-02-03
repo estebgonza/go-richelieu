@@ -58,6 +58,12 @@ func main() {
 			Aliases: []string{"rd"},
 			Action:  func(c *cli.Context) error { return creator.ReadCardinalityFromDictionaries() },
 		},
+		{
+			Name:    "readFromTableCount",
+			Usage:   "Update a plan.json from rows count read in TableCount file",
+			Aliases: []string{"rt"},
+			Action:  func(c *cli.Context) error { return creator.ReadTableCounts() },
+		},
 	}
 
 	app.CommandNotFound = func(c *cli.Context, command string) {
